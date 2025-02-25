@@ -346,10 +346,11 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@import '../../shared/assets/styles/_variables';
 .json-table-view {
   --border-color-dark: #bcbcbc;
-  --background: var(--table-bg, #000000);
+  --background: $theme-bg;
   --border-size: 1px;
   flex: 1;
   display: flex;
@@ -367,18 +368,18 @@ export default Vue.extend({
     thead {
       position: sticky;
       top: 0;
-      z-index: 2;
-      background: var(--background);
+      z-index: 100;
+      background: inherit;  // Add this line to inherit from parent
     }
     
     th {
       padding: 12px;
       text-align: left;
       font-weight: 600;
-      background-color: var(--table-header-bg);
       position: sticky;
       top: 0;
       z-index: 1;
+      background: inherit;  // Add this line to inherit from parent
       border-top: var(--border-size) solid var(--border-color-dark);
       border-bottom: var(--border-size) solid var(--border-color-dark);
       
