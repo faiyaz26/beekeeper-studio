@@ -339,15 +339,13 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .json-table-view {
-  flex: 1;
-  overflow: auto;
-  margin-top: 8px;
-  
+  --border-color-dark: #bcbcbc;  // Add this line at the top of the style block
   table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-dark);
+    margin-top: 8px;
     
     th {
       padding: 12px;
@@ -357,11 +355,11 @@ export default Vue.extend({
       position: sticky;
       top: 0;
       z-index: 1;
-      border-bottom: 2px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color-dark);
       
       &.key-cell {
         width: 40%;
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color-dark);
       }
       
       &.value-cell {
@@ -377,6 +375,10 @@ export default Vue.extend({
       &:hover {
         background-color: var(--table-hover-color);
       }
+
+      &:not(:last-child) td {
+        border-bottom: 1px solid var(--border-color-dark);
+      }
     }
     
     td {
@@ -389,7 +391,7 @@ export default Vue.extend({
         color: var(--text-dark);
         font-weight: 500;
         white-space: nowrap;
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color-dark);
       }
       
       &.value-cell {
