@@ -49,15 +49,20 @@
           <tr v-for="(value, key) in filteredJson" :key="key">
             <td class="key-cell">{{ key }}</td>
             <td class="value-cell">
-              <span v-if="isExpandable(key)" class="expandable-value" @click="expandPath(findExpandablePath(key))">
-                {{ value }}
-                <i class="material-icons">chevron_right</i>
-              </span>
-              <span v-else-if="isTruncated(key)" class="truncated-value" @click="restoreTruncatedPath(key)">
-                {{ value }}
-                <i class="material-icons">more_horiz</i>
-              </span>
-              <span v-else>{{ value }}</span>
+              <div class="value-wrapper">
+                <span v-if="isExpandable(key)" class="expandable-value" @click="expandPath(findExpandablePath(key))">
+                  {{ value }}
+                  <i class="material-icons">chevron_right</i>
+                </span>
+                <span v-else-if="isTruncated(key)" class="truncated-value" @click="restoreTruncatedPath(key)">
+                  {{ value }}
+                  <i class="material-icons">more_horiz</i>
+                </span>
+                <span v-else>{{ value }}</span>
+                <button class="copy-btn" @click="copyValue(value)" title="Copy value">
+                  <i class="material-icons">content_copy</i>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -332,20 +337,39 @@ export default Vue.extend({
 
     restoreTruncatedPath(path) {
       this.restoredTruncatedPaths.push(path);
-    }
+    },
+
+    copyValue(value) {
+      this.$native.clipboard.writeText(String(value));
+    },
   }
 });
 </script>
 
 <style lang="scss" scoped>
 .json-table-view {
-  --border-color-dark: #bcbcbc;  // Add this line at the top of the style block
+  --border-color-dark: #bcbcbc;
+  --background: var(--table-bg, #000000);
+  --border-size: 1px;
+  flex: 1;
+  display: flex;
+
+  flex-direction: column;
+  margin: 8px 0 8px 0;
+  overflow: auto;  // Changed from overflow: hidden
+  max-height: calc(100vh - 150px); // Add max-height to enable scrolling
+  
   table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid var(--border-color-dark);
-    margin-top: 8px;
+    
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--background);
+    }
     
     th {
       padding: 12px;
@@ -355,15 +379,18 @@ export default Vue.extend({
       position: sticky;
       top: 0;
       z-index: 1;
-      border-bottom: 1px solid var(--border-color-dark);
+      border-top: var(--border-size) solid var(--border-color-dark);
+      border-bottom: var(--border-size) solid var(--border-color-dark);
       
       &.key-cell {
         width: 40%;
-        border-right: 1px solid var(--border-color-dark);
+        border-right: var(--border-size) solid var(--border-color-dark);
+        border-left: var(--border-size) solid var(--border-color-dark);
       }
       
       &.value-cell {
         width: 60%;
+        border-right: var(--border-size) solid var(--border-color-dark);
       }
     }
     
@@ -376,7 +403,7 @@ export default Vue.extend({
         background-color: var(--table-hover-color);
       }
 
-      &:not(:last-child) td {
+      td {
         border-bottom: 1px solid var(--border-color-dark);
       }
     }
@@ -392,12 +419,14 @@ export default Vue.extend({
         font-weight: 500;
         white-space: nowrap;
         border-right: 1px solid var(--border-color-dark);
+        border-left: 1px solid var(--border-color-dark);
       }
       
       &.value-cell {
         width: 60%;
         color: var(--text-lighter);
         word-break: break-all;
+        border-right: 1px solid var(--border-color-dark);
       }
     }
   }
@@ -422,6 +451,40 @@ export default Vue.extend({
     text-align: center;
     color: var(--text-lighter);
     font-style: italic;
+  }
+  td.value-cell {
+    .value-wrapper {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      
+      > span {
+        flex: 1;
+      }
+      
+      .copy-btn {
+        opacity: 0;
+        padding: 2px;
+        min-width: auto;
+        height: auto;
+        color: var(--text-dark);
+        background: transparent;
+        
+        &:hover {
+          opacity: 1;
+          background: var(--table-hover-color);
+        }
+        
+        .material-icons {
+          font-size: 14px;
+        }
+      }
+    }
+    
+    &:hover .copy-btn {
+      opacity: 0.5;
+    }
   }
 }
 </style>
