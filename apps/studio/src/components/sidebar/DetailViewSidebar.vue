@@ -34,40 +34,42 @@
             <i class="material-icons">cancel</i>
           </button>
         </div>
-        <x-button
-          class="menu-btn btn btn-fab"
-          tabindex="0"
-        >
-          <i class="material-icons">more_vert</i>
-          <x-menu style="--target-align:right;">
-            <x-menuitem
-              v-for="option in menuOptions"
-              :key="option.name"
-              :toggled="option.checked"
-              togglable
-              @click.prevent="option.handler"
-            >
-              <x-label>{{ option.name }}</x-label>
-            </x-menuitem>
-          </x-menu>
-        </x-button>
       </div>
     </div>
-    <text-editor
-      :read-only="true"
-      :fold-gutter="true"
-      :fold-all="foldAll"
-      :unfold-all="unfoldAll"
-      :value="text"
-      :mode="mode"
-      :force-initizalize="reinitializeTextEditor + (reinitialize ?? 0)"
-      :markers="markers"
-      :plugins="textEditorPlugins"
-    />
+    
+    <div class="json-table-view" v-if="!empty">
+      <table v-if="hasFilteredData">
+        <thead>
+          <tr>
+            <th class="key-cell">Field Name</th>
+            <th class="value-cell">Field Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(value, key) in filteredJson" :key="key">
+            <td class="key-cell">{{ key }}</td>
+            <td class="value-cell">
+              <span v-if="isExpandable(key)" class="expandable-value" @click="expandPath(findExpandablePath(key))">
+                {{ value }}
+                <i class="material-icons">chevron_right</i>
+              </span>
+              <span v-else-if="isTruncated(key)" class="truncated-value" @click="restoreTruncatedPath(key)">
+                {{ value }}
+                <i class="material-icons">more_horiz</i>
+              </span>
+              <span v-else>{{ value }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="no-results">
+        No matching data found
+      </div>
+    </div>
+    
     <div class="empty-state" v-show="empty">
       No Data
     </div>
-    <detail-view-sidebar-upsell v-if="$store.getters.isCommunity" />
   </div>
 </template>
 
@@ -128,7 +130,7 @@ export default Vue.extend({
   },
   computed: {
     sidebarTitle() {
-      return this.title ?? "JSON Row Viewer"
+      return this.title ?? "JSON Row Tester"
     },
     empty() {
       return _.isEmpty(this.value);
@@ -267,6 +269,42 @@ export default Vue.extend({
     textEditorPlugins() {
       return [persistJsonFold]
     },
+    flattenedJson() {
+      if (this.empty) return {};
+      
+      const result = {};
+      const flatten = (obj, prefix = '') => {
+        for (const key in obj) {
+          const value = obj[key];
+          const newKey = prefix ? `${prefix}.${key}` : key;
+          
+          if (typeof value === 'object' && value !== null) {
+            // For objects, show a preview
+            result[newKey] = '{...}';
+          } else {
+            result[newKey] = value;
+          }
+        }
+      };
+      
+      flatten(this.processedValue);
+      return result;
+    },
+    filteredJson() {
+      if (!this.filter) return this.flattenedJson;
+      
+      const filterLower = this.filter.toLowerCase();
+      return Object.entries(this.flattenedJson).reduce((acc, [key, value]) => {
+        if (key.toLowerCase().includes(filterLower) || 
+            String(value).toLowerCase().includes(filterLower)) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+    },
+    hasFilteredData() {
+      return Object.keys(this.filteredJson).length > 0;
+    },
     ...mapGetters(["expandFKDetailsByDefault"]),
   },
   methods: {
@@ -276,6 +314,112 @@ export default Vue.extend({
     close() {
       this.$emit("close")
     },
-  },
+    isExpandable(key) {
+      return this.expandablePaths.some(path => 
+        path.path.join('.') === key
+      );
+    },
+
+    findExpandablePath(key) {
+      return this.expandablePaths.find(path => 
+        path.path.join('.') === key
+      );
+    },
+
+    isTruncated(key) {
+      return this.truncatedPaths.includes(key);
+    },
+
+    restoreTruncatedPath(path) {
+      this.restoredTruncatedPaths.push(path);
+    }
+  }
 });
 </script>
+
+<style lang="scss" scoped>
+.json-table-view {
+  flex: 1;
+  overflow: auto;
+  margin-top: 8px;
+  
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--border-color);
+    
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      background-color: var(--table-header-bg);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 2px solid var(--border-color);
+      
+      &.key-cell {
+        width: 40%;
+        border-right: 1px solid var(--border-color);
+      }
+      
+      &.value-cell {
+        width: 60%;
+      }
+    }
+    
+    tr {
+      &:nth-child(even) {
+        background-color: var(--table-alternate-bg);
+      }
+      
+      &:hover {
+        background-color: var(--table-hover-color);
+      }
+    }
+    
+    td {
+      padding: 8px 12px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border-color);
+      
+      &.key-cell {
+        width: 40%;
+        color: var(--text-dark);
+        font-weight: 500;
+        white-space: nowrap;
+        border-right: 1px solid var(--border-color);
+      }
+      
+      &.value-cell {
+        width: 60%;
+        color: var(--text-lighter);
+        word-break: break-all;
+      }
+    }
+  }
+  
+  .expandable-value, .truncated-value {
+    cursor: pointer;
+    color: var(--link-color);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+    
+    .material-icons {
+      font-size: 16px;
+    }
+  }
+  .no-results {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-lighter);
+    font-style: italic;
+  }
+}
+</style>

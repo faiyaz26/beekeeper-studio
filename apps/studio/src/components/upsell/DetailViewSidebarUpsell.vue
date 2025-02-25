@@ -5,10 +5,8 @@
     </span>
     <div class="body">
       <p>
-        Upgrade required to use the JSON Row Viewer.
-      </p>
-      <p>
-        View any row as JSON. Super useful when working with wide tables or complex nested data.
+        The JSON Row Viewer is a powerful tool that allows you to view and edit
+        JSON data in a structured and organized way.
       </p>
     </div>
     <upsell-buttons />
