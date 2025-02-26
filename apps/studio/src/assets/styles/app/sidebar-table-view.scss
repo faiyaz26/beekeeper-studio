@@ -1,0 +1,138 @@
+.json-table-view {
+  --border-color-dark: #bcbcbc;
+  --border-size: 1px;
+  flex: 1;
+  display: flex;
+
+  flex-direction: column;
+  margin: 8px 0 8px 0;
+  overflow: auto;  // Changed from overflow: hidden
+  max-height: calc(100vh - 150px); // Add max-height to enable scrolling
+  
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: $theme-bg;  // Add this line to inherit from parent
+    }
+    
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-top: var(--border-size) solid var(--border-color-dark);
+      border-bottom: var(--border-size) solid var(--border-color-dark);
+      
+      &.key-cell {
+        width: 40%;
+        border-right: var(--border-size) solid var(--border-color-dark);
+        border-left: var(--border-size) solid var(--border-color-dark);
+      }
+      
+      &.value-cell {
+        width: 60%;
+        border-right: var(--border-size) solid var(--border-color-dark);
+      }
+    }
+    
+    tr {
+      &:nth-child(even) {
+        background-color: var(--table-alternate-bg);
+      }
+      
+      &:hover {
+        background-color: var(--table-hover-color);
+      }
+
+      td {
+        border-bottom: 1px solid var(--border-color-dark);
+      }
+    }
+    
+    td {
+      padding: 8px 12px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border-color);
+      
+      &.key-cell {
+        width: 40%;
+        color: var(--text-dark);
+        font-weight: 500;
+        white-space: nowrap;
+        border-right: 1px solid var(--border-color-dark);
+        border-left: 1px solid var(--border-color-dark);
+      }
+      
+      &.value-cell {
+        width: 60%;
+        color: var(--text-lighter);
+        word-break: break-all;
+        border-right: 1px solid var(--border-color-dark);
+      }
+    }
+  }
+  
+  .expandable-value, .truncated-value {
+    cursor: pointer;
+    color: var(--link-color);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+    
+    .material-icons {
+      font-size: 16px;
+    }
+  }
+  .no-results {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-lighter);
+    font-style: italic;
+  }
+  td.value-cell {
+    .value-wrapper {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      
+      > span {
+        flex: 1;
+      }
+      
+      .copy-btn {
+        opacity: 0;
+        padding: 2px;
+        min-width: auto;
+        height: auto;
+        color: var(--text-dark);
+        background: transparent;
+        
+        &:hover {
+          opacity: 1;
+          background: var(--table-hover-color);
+        }
+        
+        .material-icons {
+          font-size: 14px;
+        }
+      }
+    }
+    
+    &:hover .copy-btn {
+      opacity: 0.5;
+    }
+  }
+}
